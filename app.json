@@ -1,4 +1,7 @@
 {
   "name": "barcoder",
-  "slug": "barcoder"
+  "slug": "barcoder",
+  "android": {
+    "package": "com.anonymous.barcoder"
+  }
 }
