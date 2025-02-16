@@ -1,87 +1,117 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { CameraView, useCameraPermissions, Camera } from 'expo-camera';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type RootStackParamList = {
+  Home: undefined;
+  BarcodeScanner: undefined;
+  History: undefined;
+  Settings: undefined;
+};
 
 const HomeScreen: React.FC = () => {
-  const [permission, requestPermission] = useCameraPermissions();
-  const [scanned, setScanned] = useState(false);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Home'>>();
 
-  useEffect(() => {
-    if (permission?.status !== 'granted') {
-      requestPermission();
-    }
-  }, [permission]);
-
-  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
-    setScanned(true);
-    Alert.alert('Barcode Scanned', `Type: ${type}\nData: ${data}`, [
-      { text: 'OK', onPress: () => setScanned(false) },
-    ]);
-  };
-
-  if (!permission) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text>Requesting camera permission...</Text>
-      </View>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text>No access to camera</Text>
-        <TouchableOpacity onPress={requestPermission} style={styles.scanButton}>
-          <Text style={styles.scanButtonText}>Grant Permission</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  const MenuButton = ({ 
+    title, 
+    onPress, 
+    backgroundColor = '#3b82f6' 
+  }: { 
+    title: string, 
+    onPress: () => void, 
+    backgroundColor?: string 
+  }) => (
+    <TouchableOpacity 
+      style={[styles.menuButton, { backgroundColor }]} 
+      onPress={onPress}
+    >
+      <Text style={styles.menuButtonText}>{title}</Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={styles.container}>
-      <CameraView
-        style={styles.camera}
-        facing="back"
-        barcodeScannerSettings={{
-          barcodeTypes: ['qr', 'ean13', 'ean8', 'upc_a', 'upc_e'],
-        }}
-        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-      />
-      {scanned && (
-        <TouchableOpacity style={styles.scanButton} onPress={() => setScanned(false)}>
-          <Text style={styles.scanButtonText}>Tap to Scan Again</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>Barcoder</Text>
+        <Text style={styles.headerSubtitle}>Your Barcode Companion</Text>
+      </View>
+
+      <View style={styles.menuContainer}>
+        <MenuButton 
+          title="Scan Barcode" 
+          onPress={() => navigation.navigate('BarcodeScanner')} 
+        />
+        <MenuButton 
+          title="Scan History" 
+          onPress={() => navigation.navigate('History')}
+          backgroundColor="#10b981" 
+        />
+        <MenuButton 
+          title="Settings" 
+          onPress={() => navigation.navigate('Settings')}
+          backgroundColor="#f43f5e" 
+        />
+      </View>
+
+      <View style={styles.infoContainer}>
+        <Text style={styles.infoText}>
+          Easily scan and track barcodes with just a tap!
+        </Text>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#f4f4f4',
-  },
-  permissionContainer: {
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 40,
   },
-  camera: {
-    width: '100%',
-    height: '75%',
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
   },
-  scanButton: {
-    backgroundColor: '#3b82f6',
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 16,
+  headerTitle: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 10,
   },
-  scanButtonText: {
+  headerSubtitle: {
+    fontSize: 18,
+    color: '#7f8c8d',
+  },
+  menuContainer: {
+    width: '80%',
+    gap: 20,
+  },
+  menuButton: {
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  menuButtonText: {
     color: 'white',
     fontSize: 18,
+    fontWeight: '600',
+  },
+  infoContainer: {
+    width: '80%',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  infoText: {
+    color: '#7f8c8d',
+    fontSize: 16,
     textAlign: 'center',
   },
 });
